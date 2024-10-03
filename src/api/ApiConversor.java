@@ -21,23 +21,26 @@ public class ApiConversor {
     public ApiConversor() {
     }
 
-    public Moedas RequisicaoApi(String moedaOrigem){
+    public HttpResponse<String> RequisicaoApi(String moedaOrigem){
         try {
             client = HttpClient.newHttpClient();
             request = HttpRequest.newBuilder().uri(URI.create(String.format(url,moedaOrigem))).build();
             response = client.send(request,HttpResponse.BodyHandlers.ofString());
-            //System.out.println(response.body());
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            Moedas objMoedas = gson.fromJson(response.body(),Moedas.class);
 
-            MoedasWriter writer = new MoedasWriter();
-            writer.Write(objMoedas);
-
-            return objMoedas;
+            return this.response;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Moedas GetMoedas(HttpResponse<String> response){
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Moedas objMoedas = gson.fromJson(response.body(),Moedas.class);
+
+        return  objMoedas;
+//        MoedasWriter writer = new MoedasWriter();
+//        writer.Write(objMoedas);
     }
 }

@@ -3,7 +3,10 @@ package principal;
 import api.ApiConversor;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
+import logs.Log;
 import modelos.DataFormatter;
+import modelos.Moedas;
+import modelos.MoedasAbstract;
 import writer.MoedasWriter;
 
 import java.io.*;
@@ -12,12 +15,23 @@ import java.util.*;
 public class Principal {
     public static void main(String[] args) {
         boolean applicationRun = true;
+        ApiConversor api = new ApiConversor();
+        Gson gson = new Gson();
+        Scanner scanner = new Scanner(System.in);
+        String fileName = "%s.json";
+        String jsonMoedasDisponiveis = "moedasDisponiveis.json";
+
+        var response = api.RequisicaoApi("BRL");
+        Moedas moedasDisponiveis = api.GetMoedas(response);
+        MoedasWriter writerIncial = new MoedasWriter();
+        writerIncial.Write(moedasDisponiveis,jsonMoedasDisponiveis);
+        try{
+            MoedasAbstract.setMoedas(gson.fromJson(new FileReader(String.format(writerIncial.getPath(),jsonMoedasDisponiveis)),Map.class));
+        }catch (FileNotFoundException ex){
+            System.out.println("Não foi encontrado um arquivo com o nome inserido.");
+        }
         while (applicationRun) {
             try {
-                ApiConversor api = new ApiConversor();
-                Gson gson = new Gson();
-                Scanner scanner = new Scanner(System.in);
-
                 System.out.println("""
                         *****************************************************************
                         Seja bem vindo/a ao conversor de moeda do Luiz!!
@@ -67,7 +81,7 @@ public class Principal {
                         moedaParaConversao = "USD";
                         break;
                     case 7:
-
+                        MoedasAbstract.ShowKeys();
                         System.out.println("Digite o código da moeda escolhida:");
                         moedaEscolhida = scanner.next().toUpperCase();
                         System.out.println("Digite o código da moeda para conversão:");
@@ -83,8 +97,12 @@ public class Principal {
                     System.out.println("Digite o valor da moeda escolhida: ");
                     double valor = scanner.nextDouble();
 
-                    api.RequisicaoApi(moedaEscolhida);
-                    Map<String, Double> moedas = gson.fromJson(new FileReader("moedas.json"), Map.class);
+
+                    var responseDinamica = api.RequisicaoApi(moedaEscolhida);
+                    var moedaDinamica = api.GetMoedas(responseDinamica);
+                    MoedasWriter writerDinamico = new MoedasWriter();
+                    writerDinamico.Write(moedaDinamica, String.format(fileName,moedaEscolhida));
+                    Map<String, Double> moedas = gson.fromJson(new FileReader(String.format(writerDinamico.getPath(), String.format(fileName, moedaEscolhida))), Map.class);
 
                     try{
                         double valorMoedaOrigem = moedas.get(moedaEscolhida);
@@ -94,17 +112,11 @@ public class Principal {
                         System.out.println(String.format("\n%.2f em %s convertido para %s é: %.2f", valor, moedaEscolhida, moedaParaConversao, valorConvertido));
 
                         String data = new DataFormatter().Formatar("dd/MM/yyyy HH:mm:ss");
+
                         String conversaoLog = String.format("%s | Conversão realizada da moeda %s para %s.Valor da moeda escolhida foi %.2f, após a conversão o valor foi de %.2f", data, moedaEscolhida, moedaParaConversao, valor, valorConvertido);
+                        Log log = new Log();
+                        log.CreateLog(conversaoLog);
 
-                        File log = new File("C://challenge-conversor-moeda//conversor-moeda//src//logs//logs.txt");
-                        if (!log.exists()) log.createNewFile();
-
-                        FileWriter fw = new FileWriter(log, true);
-                        BufferedWriter bw = new BufferedWriter(fw);
-                        bw.write(conversaoLog);
-                        bw.newLine();
-                        bw.close();
-                        fw.close();
                     }catch (NullPointerException ex){
                         System.out.println("Código da moeda para conversão inválido.");
                     }
@@ -113,8 +125,7 @@ public class Principal {
                 System.out.println("O Arquivo especificado não foi encontrado.");
             } catch (InputMismatchException ex) {
                 System.out.println("Digite um valor válido e tente novamente.");
-            }catch (IOException e) {
-                System.out.println("TESTE");
+                scanner.nextLine();
             }catch (NullPointerException ex){
                 System.out.println(ex.getMessage());
             }

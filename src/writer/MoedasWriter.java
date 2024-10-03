@@ -7,30 +7,32 @@ import modelos.Moedas;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class MoedasWriter {
-    private String fileName = "moedas.json";
 
-    public void Write(Moedas moeda) {
+    private String path = "C://challenge-conversor-moeda//conversor-moeda//src//moedas//pesquisadas//%s";
+
+    public void Write(Moedas moeda,String fileName) {
+        String fullPath = String.format(path,fileName);
         try {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             if (moeda.conversion_rates() == null) throw new NullPointerException("A moeda escolhida não foi encontrada para realizar a conversão.\nVerifique o código da moeda inserida e tente novamente.");
             var moedas = gson.toJson(moeda.conversion_rates());
 
-            FileWriter writer = new FileWriter(fileName);
-            writer.write(moedas);
-            writer.close();
-
+            File file = new File(fullPath);
+            if(!file.exists()){
+                file.createNewFile();
+                FileWriter writer = new FileWriter(fullPath);
+                writer.write(moedas);
+                writer.close();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFileName() {
-        return fileName;
+    public String getPath() {
+        return path;
     }
 }
