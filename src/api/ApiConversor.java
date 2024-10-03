@@ -21,7 +21,7 @@ public class ApiConversor {
     public ApiConversor() {
     }
 
-    public Moedas RequisicaoApi(Double valor, String moedaOrigem){
+    public Moedas RequisicaoApi(String moedaOrigem){
         try {
             client = HttpClient.newHttpClient();
             request = HttpRequest.newBuilder().uri(URI.create(String.format(url,moedaOrigem))).build();
