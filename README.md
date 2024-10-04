@@ -14,6 +14,6 @@
 <p align="center">
 <img loading="lazy" src="http://img.shields.io/static/v1?label=STATUS&message=EM%20CONCLUÍDO&color=GREEN&style=for-the-badge"/>
 </p>
-![Static Badge](https://img.shields.io/badge/Linguagem-Java-red)
-![Static Badge](https://img.shields.io/badge/IDE-Intellij-blue)
+![Static Badge](![image](https://github.com/user-attachments/assets/15f38f73-ba70-47c3-b0dc-586fc69cf421))
+![Static Badge](![image](https://github.com/user-attachments/assets/c893b6c5-0ced-41b7-84f6-091cf4c82391))
 ![GitHub Org's stars](https://img.shields.io/github/stars/lsouza-dev?style=social)
