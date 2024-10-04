@@ -28,19 +28,20 @@ public class ApiConversor {
             response = client.send(request,HttpResponse.BodyHandlers.ofString());
 
             return this.response;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     public Moedas GetMoedas(HttpResponse<String> response){
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Moedas objMoedas = gson.fromJson(response.body(),Moedas.class);
+        if(response.statusCode() == 404) throw new IllegalArgumentException("A moeda inserida não existe.\nNão foi possível encontrar a moeda inserida e realizar a conversão.");
+        try{
+            Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+            Moedas objMoedas = gson.fromJson(response.body(),Moedas.class);
 
-        return  objMoedas;
-//        MoedasWriter writer = new MoedasWriter();
-//        writer.Write(objMoedas);
+            return  objMoedas;
+        }catch(Exception ex){
+            throw new RuntimeException(ex);
+        }
     }
 }

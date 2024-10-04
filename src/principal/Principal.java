@@ -2,11 +2,13 @@ package principal;
 
 import api.ApiConversor;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import logs.Log;
 import modelos.DataFormatter;
 import modelos.Moedas;
 import modelos.MoedasAbstract;
+import modelos.ValueFormatter;
 import writer.MoedasWriter;
 
 import java.io.*;
@@ -16,7 +18,7 @@ public class Principal {
     public static void main(String[] args) {
         boolean applicationRun = true;
         ApiConversor api = new ApiConversor();
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
         Scanner scanner = new Scanner(System.in);
         String fileName = "%s.json";
         String jsonMoedasDisponiveis = "moedasDisponiveis.json";
@@ -24,6 +26,7 @@ public class Principal {
         var response = api.RequisicaoApi("BRL");
         Moedas moedasDisponiveis = api.GetMoedas(response);
         MoedasWriter writerIncial = new MoedasWriter();
+        MoedasWriter writerDinamico = new MoedasWriter();
         writerIncial.Write(moedasDisponiveis,jsonMoedasDisponiveis);
         try{
             MoedasAbstract.setMoedas(gson.fromJson(new FileReader(String.format(writerIncial.getPath(),jsonMoedasDisponiveis)),Map.class));
@@ -84,6 +87,7 @@ public class Principal {
                         MoedasAbstract.ShowKeys();
                         System.out.println("Digite o código da moeda escolhida:");
                         moedaEscolhida = scanner.next().toUpperCase();
+                        if(!MoedasAbstract.getMoedas().containsKey(moedaEscolhida)) throw new NoSuchElementException("Não foi possível encontrar a moeda inserida!\nVerifique as moedas disponíveis na lista e tente novamente.");
                         System.out.println("Digite o código da moeda para conversão:");
                         moedaParaConversao = scanner.next().toUpperCase();
                         break;
@@ -100,7 +104,6 @@ public class Principal {
 
                     var responseDinamica = api.RequisicaoApi(moedaEscolhida);
                     var moedaDinamica = api.GetMoedas(responseDinamica);
-                    MoedasWriter writerDinamico = new MoedasWriter();
                     writerDinamico.Write(moedaDinamica, String.format(fileName,moedaEscolhida));
                     Map<String, Double> moedas = gson.fromJson(new FileReader(String.format(writerDinamico.getPath(), String.format(fileName, moedaEscolhida))), Map.class);
 
@@ -109,11 +112,13 @@ public class Principal {
                         double valorMoedaConversao = moedas.get(moedaParaConversao);
                         double valorConvertido = (valor / valorMoedaOrigem) * valorMoedaConversao;
 
-                        System.out.println(String.format("\n%.2f em %s convertido para %s é: %.2f", valor, moedaEscolhida, moedaParaConversao, valorConvertido));
-
                         String data = new DataFormatter().Formatar("dd/MM/yyyy HH:mm:ss");
+                        String valorFinalFormatado = new ValueFormatter(moedaParaConversao,valorConvertido).FormatarValor().replace("\u00A0"," ");
+                        String valorInicialFormatado = new ValueFormatter(moedaEscolhida,valor).FormatarValor().replace("\u00A0"," ");
 
-                        String conversaoLog = String.format("%s | Conversão realizada da moeda %s para %s.Valor da moeda escolhida foi %.2f, após a conversão o valor foi de %.2f", data, moedaEscolhida, moedaParaConversao, valor, valorConvertido);
+                        System.out.println(String.format("\n%s convertido para %s é: %s", valorInicialFormatado, moedaParaConversao,valorFinalFormatado));
+
+                        String conversaoLog = String.format("%s | Conversão realizada: %s = %s", data,valorInicialFormatado,valorFinalFormatado);
                         Log log = new Log();
                         log.CreateLog(conversaoLog);
 
@@ -126,7 +131,7 @@ public class Principal {
             } catch (InputMismatchException ex) {
                 System.out.println("Digite um valor válido e tente novamente.");
                 scanner.nextLine();
-            }catch (NullPointerException ex){
+            }catch (NullPointerException | IllegalArgumentException | NoSuchElementException ex){
                 System.out.println(ex.getMessage());
             }
         }

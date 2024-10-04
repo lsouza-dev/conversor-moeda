@@ -16,7 +16,7 @@ public class MoedasWriter {
     public void Write(Moedas moeda,String fileName) {
         String fullPath = String.format(path,fileName);
         try {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
             if (moeda.conversion_rates() == null) throw new NullPointerException("A moeda escolhida não foi encontrada para realizar a conversão.\nVerifique o código da moeda inserida e tente novamente.");
             var moedas = gson.toJson(moeda.conversion_rates());
 
